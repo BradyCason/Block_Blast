@@ -31,7 +31,6 @@
 
 class BlockBlastGame {
     int board[BOARD_WIDTH][BOARD_WIDTH] = {};
-    int board_copy[BOARD_WIDTH][BOARD_WIDTH] = {};
     bool has_died = false;
 
     void check_for_clears(int b[BOARD_WIDTH][BOARD_WIDTH]);
@@ -48,7 +47,7 @@ class BlockBlastGame {
         void input_board();
         void print_board() const;
         void print_piece(int piece[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH]);
-        void play_3_pieces();
+        bool play_3_pieces();
         bool dead() const;
 };
 

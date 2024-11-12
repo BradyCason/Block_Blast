@@ -9,7 +9,10 @@ int main(){
     BlockBlastGame game = BlockBlastGame();
     game.input_board();
     while(!game.dead()){
-        game.play_3_pieces();
+        if (!game.play_3_pieces()){
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+            game.input_board();
+        }
     }
 
     return 0;

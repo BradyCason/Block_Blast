@@ -218,7 +218,7 @@ float BlockBlastGame::evaluate_board(int b[BOARD_WIDTH][BOARD_WIDTH]) const{
             
             if (b[i][j] == 0){
                 // Add for every 0 (Clearing lines == Better Score)
-                score += 0.1;
+                // score += 0.1;
 
                 // Subtract more for each aditional each of hole
                 int num_edges = 0;
@@ -230,7 +230,11 @@ float BlockBlastGame::evaluate_board(int b[BOARD_WIDTH][BOARD_WIDTH]) const{
                 else num_edges += 1;
                 if (j < BOARD_WIDTH - 1) num_edges += b[i][j+1];
                 else num_edges += 1;
+
                 score -= std::pow(num_edges, 2);
+
+                // if (num_edges == 3) score -= 50;
+                // if (num_edges == 4) score -= 100;
             }
 
             // subtract for points
@@ -240,8 +244,12 @@ float BlockBlastGame::evaluate_board(int b[BOARD_WIDTH][BOARD_WIDTH]) const{
                 if (i < BOARD_WIDTH - 1) num_edges += !b[i+1][j];
                 if (j > 0) num_edges += !b[i][j-1];
                 if (j < BOARD_WIDTH - 1) num_edges += !b[i][j+1];
-                score -= std::pow(num_edges, 2);
+                score -= 0.5 * std::pow(num_edges, 2);
             }
+
+            // Reward for blocks of the same type
+            if (i < BOARD_WIDTH - 1 && b[i][j] == b[i+1][j]) score += 1;
+            if (j < BOARD_WIDTH - 1 && b[i][j] == b[i][j + 1]) score += 1;
         }
     }
     return score;
@@ -271,7 +279,7 @@ void BlockBlastGame::place_best_piece(int& piece_used, int piece1[MAX_PIECE_WIDT
                 if (piece_fits(piece1, board, i, j)){
                     int b[BOARD_WIDTH][BOARD_WIDTH] = {};
                     copy_board(b, board);
-                    place_piece(piece1, board, i, j);
+                    place_piece(piece1, b, i, j);
                     int score = evaluate_board(b);
                     if (score > best_score){
                         best_score = score;
@@ -289,7 +297,7 @@ void BlockBlastGame::place_best_piece(int& piece_used, int piece1[MAX_PIECE_WIDT
                 if (piece_fits(piece2, board, i, j)){
                     int b[BOARD_WIDTH][BOARD_WIDTH] = {};
                     copy_board(b, board);
-                    place_piece(piece2, board, i, j);
+                    place_piece(piece2, b, i, j);
                     int score = evaluate_board(b);
                     if (score > best_score){
                         best_score = score;
@@ -307,7 +315,7 @@ void BlockBlastGame::place_best_piece(int& piece_used, int piece1[MAX_PIECE_WIDT
                 if (piece_fits(piece3, board, i, j)){
                     int b[BOARD_WIDTH][BOARD_WIDTH] = {};
                     copy_board(b, board);
-                    place_piece(piece3, board, i, j);
+                    place_piece(piece3, b, i, j);
                     int score = evaluate_board(b);
                     if (score > best_score){
                         best_score = score;
@@ -335,7 +343,7 @@ void BlockBlastGame::place_best_piece(int& piece_used, int piece1[MAX_PIECE_WIDT
     }
 }
 
-void BlockBlastGame::play_3_pieces(){
+bool BlockBlastGame::play_3_pieces(){
     int pieces[3][MAX_PIECE_WIDTH][MAX_PIECE_WIDTH] = {};
     int piece_xs[3] = {PIECE_X_1, PIECE_X_2, PIECE_X_3};
     input_piece(pieces[0], PIECE_X_1, PIECE_Y);
@@ -387,7 +395,7 @@ void BlockBlastGame::play_3_pieces(){
                                                                 copy_board(board_3, board_2);
                                                                 place_piece(pieces[third], board_3, x3, y3);
 
-                                                                float score = evaluate_board(board_1);
+                                                                float score = evaluate_board(board_3);
                                                                 if (score > best_score){
                                                                     best_score = score;
                                                                     best_piece1 = first;
@@ -417,21 +425,23 @@ void BlockBlastGame::play_3_pieces(){
     }
     
     if (best_piece1 == 0 && best_piece2 == 0 && best_piece3 == 0){
+        input_board();
         int empty[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH] = {};
         int first_piece = 0;
         int second_piece = 0;
         place_best_piece(first_piece, pieces[0], pieces[1], pieces[2]);
-        if (!check_death()) return;
+        if (!check_death()) return false;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if (first_piece == 1) place_best_piece(second_piece, empty, pieces[1], pieces[2]);
         else if (first_piece == 2) place_best_piece(second_piece, pieces[0], empty, pieces[2]);
         else if (first_piece == 3) place_best_piece(second_piece, pieces[0], pieces[1], empty);
-        if (!check_death()) return;
+        if (!check_death()) return false;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if (first_piece == 1 && second_piece == 2) place_best_piece(second_piece, empty, empty, pieces[2]);
         else if (first_piece == 2 && second_piece == 3) place_best_piece(second_piece, pieces[0], empty, empty);
         else if (first_piece == 1 && second_piece == 3) place_best_piece(second_piece, empty, pieces[1], empty);
-        has_died = true;
+        check_death();
+        return false;
     }
     else{
         place_piece(pieces[best_piece1], board, best_x1, best_y1);
@@ -445,5 +455,5 @@ void BlockBlastGame::play_3_pieces(){
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    // Check if empty pieces and or same peiece: input board and then place the non empty ones
+    return true;
 }
