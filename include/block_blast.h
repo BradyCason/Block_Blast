@@ -23,20 +23,33 @@
 #define BACKGROUND_B_MIN 142
 #define BACKGROUND_B_MAX 150
 
+#define DEATH_R 47
+#define DEATH_G 70
+#define DEATH_B 123
+#define DEATH_X 740
+#define DEATH_Y 950
+
 class BlockBlastGame {
     int board[BOARD_WIDTH][BOARD_WIDTH] = {};
-    void check_for_clears();
-    int evaluate_board(int b[BOARD_WIDTH][BOARD_WIDTH]);
-    void place_piece(int piece[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH], int x_offset, int y_offset, int center_x, int center_y);
-    void input_piece(int piece[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH], int center_x, int center_y);
-    bool piece_fits(int piece[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH], int x_offset, int y_offset) const;
+    int board_copy[BOARD_WIDTH][BOARD_WIDTH] = {};
+    bool has_died = false;
+
+    void check_for_clears(int b[BOARD_WIDTH][BOARD_WIDTH]);
+    void copy_board(int ret[BOARD_WIDTH][BOARD_WIDTH], int orig[BOARD_WIDTH][BOARD_WIDTH]);
+    float evaluate_board(int b[BOARD_WIDTH][BOARD_WIDTH]) const;
+    void cursor_place_piece(int piece[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH], int x_offset, int y_offset, int center_x, int center_y) const;
+    void place_piece(int piece[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH], int b[BOARD_WIDTH][BOARD_WIDTH], int x_offset, int y_offset);
     void place_best_piece(int& piece_used, int piece1[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH], int piece2[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH], int piece3[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH]);
+    void input_piece(int piece[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH], int center_x, int center_y);
+    bool piece_fits(int piece[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH], int b[BOARD_WIDTH][BOARD_WIDTH], int x_offset, int y_offset) const;
+    bool check_death();
 
     public:
         void input_board();
         void print_board() const;
         void print_piece(int piece[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH]);
-        bool play_3_pieces();
+        void play_3_pieces();
+        bool dead() const;
 };
 
 #endif
