@@ -44,8 +44,13 @@ void clickAndDrag(int startX, int startY, int endX, int endY) {
 }
 
 bool BlockBlastGame::check_death(){
-    COLORREF color = GetPixelColor(DEATH_X, DEATH_Y);
-    if ((int)GetRValue(color) == DEATH_R && (int)GetGValue(color) == DEATH_G && (int)GetBValue(color) == DEATH_B){
+    COLORREF color = GetPixelColor(DEATH_1_X, DEATH_1_Y);
+    if ((int)GetRValue(color) == DEATH_1_R && (int)GetGValue(color) == DEATH_1_G && (int)GetBValue(color) == DEATH_1_B){
+        has_died = true;
+        return false;
+    }
+    color = GetPixelColor(DEATH_2_X, DEATH_2_Y);
+    if ((int)GetRValue(color) == DEATH_2_R && (int)GetGValue(color) == DEATH_2_G && (int)GetBValue(color) == DEATH_2_B){
         has_died = true;
         return false;
     }
@@ -207,6 +212,24 @@ bool BlockBlastGame::piece_fits(int piece[MAX_PIECE_WIDTH][MAX_PIECE_WIDTH], int
     return true;
 }
 
+void BlockBlastGame::restart(){
+    SetCursorPos(SUBMIT_BUTTON_X, SUBMIT_BUTTON_Y);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    SetCursorPos(RESTART_BUTTON_X, RESTART_BUTTON_Y);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    has_died = false;
+}
+
 float BlockBlastGame::evaluate_board(int b[BOARD_WIDTH][BOARD_WIDTH]) const{
     float score = 0;
     for (int i = 0; i < BOARD_WIDTH; i++){
@@ -248,8 +271,8 @@ float BlockBlastGame::evaluate_board(int b[BOARD_WIDTH][BOARD_WIDTH]) const{
             }
 
             // Reward for blocks of the same type
-            if (i < BOARD_WIDTH - 1 && b[i][j] == b[i+1][j]) score += 1;
-            if (j < BOARD_WIDTH - 1 && b[i][j] == b[i][j + 1]) score += 1;
+            // if (i < BOARD_WIDTH - 1 && b[i][j] == b[i+1][j]) score += 1;
+            // if (j < BOARD_WIDTH - 1 && b[i][j] == b[i][j + 1]) score += 1;
         }
     }
     return score;
@@ -354,6 +377,13 @@ bool BlockBlastGame::play_3_pieces(){
     for (int i = 0; i < 3; i++){
         if (pieces[i][2][2] == 0 && pieces[i][1][2] == 0 && pieces[i][3][2] == 0 && pieces[i][2][1] == 0 && pieces[i][2][3] == 0){
             piece_empty[i] = true;
+        }
+    }
+
+    // Check if any pieces are full. If so return false
+    for (int i = 0; i < 3; i++){
+        if (pieces[i][0][0] == 1 && pieces[i][2][0] == 1 && pieces[i][0][2] == 1 && pieces[i][2][2] == 1){
+            return false;
         }
     }
 
